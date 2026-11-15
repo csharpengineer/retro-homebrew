@@ -1,5 +1,5 @@
-; Self test: hold L+R at power-on. The same 22 checks as YACHT /T on the
-; Tandy, then a mailbox the emulator tests use to ask for scores.
+; Self test: hold L+R at power-on. The 22 checks of YACHT /T on the Tandy
+; (straights reworked, one added: 23), then a mailbox the emulator tests use to ask for scores.
 .SECTION "SelfTest" FREE
 
 SelfTest:
@@ -210,7 +210,8 @@ StrSelfTest:  .db "YACHT  SELF TEST", 0
 StrChecksRun: .db " CHECKS RUN", 0
 StrFailed:    .db " FAILED", 0
 
-; Five dice, category, expected score: copied from tandy1000/yacht/src/data.asm.
+; Five dice, category, expected score: copied from tandy1000/yacht/src/data.asm,
+; with the straight cases rewritten for the Small/Large boxes.
 TestCases:
   .db 1,1,2,3,4, 0
   .dw 2
@@ -230,13 +231,15 @@ TestCases:
   .dw 0
   .db 1,2,3,4,5, CAT_LITTLE
   .dw 30
-  .db 2,3,4,5,6, CAT_LITTLE
+  .db 3,4,1,6,5, CAT_LITTLE
+  .dw 30
+  .db 1,2,3,5,6, CAT_LITTLE
   .dw 0
   .db 2,3,4,5,6, CAT_BIG
-  .dw 30
-  .db 6,5,4,3,2, CAT_BIG
-  .dw 30
+  .dw 40
   .db 1,2,3,4,5, CAT_BIG
+  .dw 40
+  .db 1,2,3,4,6, CAT_BIG
   .dw 0
   .db 1,3,5,2,6, CAT_CHOICE
   .dw 17

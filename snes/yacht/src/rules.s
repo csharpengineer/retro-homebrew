@@ -1,4 +1,6 @@
-; Scoring and the random generator, translated from tandy1000/yacht/src/yacht.asm.
+; Scoring and the random generator, translated from tandy1000/yacht/src/yacht.asm,
+; except the straights: the SNES boxes are poker-dice Small (any four in a row,
+; 30) and Large (five in a row, 40) instead of Yacht's Little (1-5) and Big (2-6).
 ; All routines: called with A 8-bit, X/Y 16-bit; they return the same way.
 .SECTION "Rules" FREE
 
@@ -134,21 +136,47 @@ ScoreCat:
   rts
 
 @little:
+  ; Small straight: any four faces in a row (1-4, 2-5 or 3-6) score 30.
   ldx #1
-  bra @straight
-@big:
-  ldx #2
-@straight:
-  ldy #5
-@sl:
+@lw:
   lda counts,x
-  cmp #1
-  bne @zero
-  inx
-  dey
-  bne @sl
+  beq @lnext
+  lda counts+1,x
+  beq @lnext
+  lda counts+2,x
+  beq @lnext
+  lda counts+3,x
+  beq @lnext
   lda #30
   sta res16
+  rts
+@lnext:
+  inx
+  cpx #4
+  bne @lw
+  rts
+
+@big:
+  ; Large straight: five in a row (1-5 or 2-6) scores 40.
+  ldx #1
+@bw:
+  lda counts,x
+  beq @bnext
+  lda counts+1,x
+  beq @bnext
+  lda counts+2,x
+  beq @bnext
+  lda counts+3,x
+  beq @bnext
+  lda counts+4,x
+  beq @bnext
+  lda #40
+  sta res16
+  rts
+@bnext:
+  inx
+  cpx #3
+  bne @bw
   rts
 
 @zero:

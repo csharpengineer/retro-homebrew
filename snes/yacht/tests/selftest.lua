@@ -1,8 +1,8 @@
--- Holding L+R at power-on runs the self-test: 22 checks, none failing.
+-- Holding L+R at power-on runs the self-test: 23 checks, none failing.
 function test()
   enter_selftest()
   local runs, fails = read16(0x7E1F02), read16(0x7E1F04)
-  check(runs == 22, "checks run = " .. runs .. ", want 22")
+  check(runs == 23, "checks run = " .. runs .. ", want 23")
   check(fails == 0, fails .. " checks failed")
   -- The generator is the Tandy one: after 6000 rolls from 1234 the seed must match.
   local s = 1234

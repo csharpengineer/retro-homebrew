@@ -1,7 +1,8 @@
--- Reference rules, translated from tandy1000/yacht/src/yacht.asm score_cat (lines 1014-1101).
+-- Reference rules. Faces, Full House, Four Alike, Choice and Yacht as in tandy1000/yacht
+-- score_cat; the straights are the poker-dice kind (the SNES boxes are Small and Large).
 -- Not a test on its own: run.sh skips files starting with "yacht_".
--- Categories: 0-5 faces, 6 full house, 7 four of a kind, 8 little straight,
--- 9 big straight, 10 choice, 11 yacht.
+-- Categories: 0-5 faces, 6 full house, 7 four alike, 8 small straight (any four
+-- in a row, 30), 9 large straight (five in a row, 40), 10 choice, 11 yacht.
 function ref_score(d, cat)
   local counts, sum = { 0, 0, 0, 0, 0, 0 }, 0
   for i = 1, 5 do counts[d[i]] = counts[d[i]] + 1; sum = sum + d[i] end
@@ -18,10 +19,21 @@ function ref_score(d, cat)
     for f = 6, 1, -1 do if counts[f] >= 4 then return f * 4 end end
     return 0
   end
-  if cat == 8 or cat == 9 then
-    local first = (cat == 8) and 1 or 2
-    for f = first, first + 4 do if counts[f] ~= 1 then return 0 end end
-    return 30
+  if cat == 8 then
+    for first = 1, 3 do
+      if counts[first] > 0 and counts[first + 1] > 0 and counts[first + 2] > 0 and counts[first + 3] > 0 then
+        return 30
+      end
+    end
+    return 0
+  end
+  if cat == 9 then
+    for first = 1, 2 do
+      local run = true
+      for f = first, first + 4 do if counts[f] ~= 1 then run = false end end
+      if run then return 40 end
+    end
+    return 0
   end
   if cat == 10 then return sum end
   for f = 6, 1, -1 do if counts[f] == 5 then return 50 end end

@@ -1,4 +1,5 @@
--- The Skipper makes the same choices as the Tandy one (tandy1000/yacht/src/game.asm 895-1127).
+-- The Skipper makes the same choices as the Tandy one (tandy1000/yacht/src/game.asm 895-1127),
+-- except for straights, which follow the poker-dice boxes (see yacht_ref.lua).
 -- open[c+1] == true means box c is empty for the player on turn.
 local EXPECT = { 2, 5, 8, 11, 14, 17, 15, 12, 8, 8, 21, 6 }   -- ai_expect
 
@@ -11,7 +12,10 @@ end
 local function scores_now(d, open, cat) return open[cat + 1] and ref_score(d, cat) > 0 end
 
 local function ref_satisfied(d, open)
-  if scores_now(d, open, 11) or scores_now(d, open, 8) or scores_now(d, open, 9) or scores_now(d, open, 6) then
+  -- a small straight only stops him when the large one is filled: with a run
+  -- of four held he can still roll for five
+  if scores_now(d, open, 11) or scores_now(d, open, 9) or scores_now(d, open, 6)
+    or (scores_now(d, open, 8) and not open[10]) then
     return true
   end
   return open[8] and ref_score(d, 7) >= 20
@@ -37,14 +41,17 @@ local function ref_holds(d, open)
   for f = 1, 6 do
     if c[f] > 0 then distinct = distinct + 1; if c[f] > largest then largest = c[f] end end
   end
-  -- chase a straight: the Tandy code ORs the two boxes and compares with EMPTY,
-  -- so it chases when either straight box is still empty
-  if distinct >= 4 and largest <= 2 and (open[9] or open[10]) then
-    local first, last = 1, 6
-    if c[1] > 0 and c[6] > 0 then
-      if open[10] then first = 2 else last = 5 end
+  -- chase a straight: keep one of each face in the run of five (large open) or
+  -- four (only small open) that already has the most faces; ties keep the lower run
+  if distinct >= 4 and (open[9] or open[10]) then
+    local len = open[10] and 5 or 4
+    local best, best_n = 1, -1
+    for first = 1, 7 - len do
+      local n = 0
+      for f = first, first + len - 1 do if c[f] > 0 then n = n + 1 end end
+      if n > best_n then best, best_n = first, n end
     end
-    for f = first, last do if c[f] > 0 then hold_one(f) end end
+    for f = best, best + len - 1 do if c[f] > 0 then hold_one(f) end end
     return h
   end
   -- two pairs chase a full house

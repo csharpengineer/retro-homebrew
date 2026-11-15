@@ -1,5 +1,6 @@
 ; The Skipper, the computer opponent. A line-by-line translation of
 ; tandy1000/yacht/src/game.asm ai_scores_now .. ai_holds; Tandy labels in comments.
+; The straight logic is new: the SNES has Small/Large straights (see rules.s).
 .SECTION "Skipper" FREE
 
 ; slot_of: A = category. Returns X = byte offset of the player on turn's box. Preserves A.
@@ -59,12 +60,18 @@ SkipperSatisfied:
   lda #CAT_YACHT
   jsr ScoresNow
   bcs @r
-  lda #CAT_LITTLE
-  jsr ScoresNow
-  bcs @r
   lda #CAT_BIG
   jsr ScoresNow
   bcs @r
+  lda #CAT_LITTLE     ; a small straight is enough only once the large box is
+  jsr ScoresNow       ; filled: with four in a row held he can still roll for five
+  bcc @nolit
+  lda #CAT_BIG
+  jsr IsOpen
+  bcs @nolit
+  sec
+  rts
+@nolit:
   lda #CAT_FULL
   jsr ScoresNow
   bcs @r
@@ -184,47 +191,65 @@ SkipperHolds:
   cpx #7
   bne @d
 
-  ; chase a straight (the Tandy code ORs both boxes and compares with EMPTY)
+  ; chase a straight: keep one of each face in the run of five (large box
+  ; open) or four (only the small one) that already has the most faces
   lda ai_dl
   cmp #4
   bcc @nost
-  lda ai_dh
-  cmp #3
-  bcs @nost
   lda #CAT_LITTLE
-  jsr SlotOf
-  A16
-  lda scores,x
-  sta tmp0
-  A8
-  lda #CAT_BIG
-  jsr SlotOf
-  A16
-  lda scores,x
-  ora tmp0
-  cmp #EMPTY
-  A8
-  bne @nost
-  lda #1
-  sta ai_dl           ; first face to keep
-  lda #6
-  sta ai_dh           ; last face to keep
-  lda counts+1
-  beq @sh
-  lda counts+6
-  beq @sh
+  jsr IsOpen
+  bcs @chase
   lda #CAT_BIG
   jsr IsOpen
-  bcc @droph
-  lda #2
-  sta ai_dl
-  bra @sh
-@droph:
+  bcc @nost
+@chase:
+  lda #4
+  sta ai_w            ; run length
+  lda #CAT_BIG
+  jsr IsOpen
+  bcc @len
   lda #5
-  sta ai_dh
-@sh:
-  lda ai_dl
+  sta ai_w
+@len:
+  lda #1
+  sta ai_bf           ; best run's first face
   sta ai_f
+  stz ai_bw           ; faces it has
+@win:
+  stz tmp0
+  A16
+  lda ai_f
+  and #$00FF
+  tax
+  A8
+  lda ai_w
+  sta ai_dh
+@cnt:
+  lda counts,x
+  beq @c0
+  inc tmp0
+@c0:
+  inx
+  dec ai_dh
+  bne @cnt
+  lda tmp0
+  cmp ai_bw
+  beq @wn             ; ties keep the lower run
+  bcc @wn
+  sta ai_bw
+  lda ai_f
+  sta ai_bf
+@wn:
+  inc ai_f
+  lda ai_f
+  clc
+  adc ai_w
+  cmp #8              ; the run must end by face 6
+  bcc @win
+  lda ai_bf
+  sta ai_f
+  lda ai_w
+  sta ai_dh
 @sl:
   A16
   lda ai_f
@@ -237,10 +262,8 @@ SkipperHolds:
   jsr HoldOne
 @sn:
   inc ai_f
-  lda ai_f
-  cmp ai_dh
-  beq @sl
-  bcc @sl
+  dec ai_dh
+  bne @sl
   rts
 
 @nost:
