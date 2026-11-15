@@ -45,3 +45,7 @@ so the two versions stay in step.
 
 Adding a game: make `<console>/<game>/` with its own `build.sh` and a README,
 and add a row to the table above.
+
+## License
+
+MIT (see [LICENSE](LICENSE)). Made for fun; use it however you like.
