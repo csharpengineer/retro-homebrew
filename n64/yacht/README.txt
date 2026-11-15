@@ -17,7 +17,7 @@ so, but if the cart asks for a save type, choose EEPROM 4K (4 Kbit).
   Title     Up/Down choose, A or Start picks. "SOUND: ON/OFF" toggles sound.
             Leave it alone for 20 seconds and the Skipper plays a demo game.
   Dice      A makes the first roll. Then Left/Right pick a die, A holds or
-            releases it, Z (or R) rolls again (three rolls a turn).
+            releases it, Z (or R) rolls again (three rolls a turn). L does nothing.
             Down moves to the scorecard.
   Card      Up/Down pick a box (red numbers show what it would score),
             A scores it, B goes back to the dice while rolls remain.
@@ -38,7 +38,8 @@ Building
 --------
 From Git Bash on Windows, with Node, WSL Ubuntu holding libdragon (the
 toolchain .deb from the libdragon releases in /opt/libdragon, and libdragon's
-preview branch built and installed), and ares v148 for the emulator test
+preview branch built and installed; made with preview commit 39d0d60, and it
+uses some preview-only calls such as wav64_load), and ares v148 for the emulator test
 (/c/tools/ares/ares-v148, or set ARES_DIR).
 
   ./build.sh         builds build/yacht.z64

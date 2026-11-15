@@ -69,8 +69,11 @@ static uint16_t turn_pad(const game_t *g, const input_t *in) {
   if (g->cur == 1 && in->p2_present) return in->new2;
   return in->new1;
 }
+// The controller to rumble: player 2's in a two-player game, otherwise the
+// one the human last pressed.
 static int turn_port(const game_t *g, const input_t *in) {
-  return g->mode == MODE_TWO && g->cur == 1 && in->p2_present ? 1 : 0;
+  if (g->mode == MODE_TWO) return g->cur == 1 && in->p2_present ? 1 : 0;
+  return g->port;
 }
 
 static void human_status(game_t *g) {
@@ -99,7 +102,9 @@ static void start_turn(app_t *a) {
   g->cursor = (uint8_t)first_open(g);
   g->highlight = false;
   g->last_cat = -1;
-  if (g->mode == MODE_SKIPPER) snprintf(g->banner, sizeof g->banner, "%s", g->cur ? "SKIPPER" : "YOUR TURN");
+  // the Skipper's turns say SKIPPER, in the demo too (SNES StatusSkipper)
+  if (player_is_ai(g, g->cur)) snprintf(g->banner, sizeof g->banner, "SKIPPER");
+  else if (g->mode == MODE_SKIPPER) snprintf(g->banner, sizeof g->banner, "YOUR TURN");
   else snprintf(g->banner, sizeof g->banner, "%s", g->cur ? "PLAYER 2" : "PLAYER 1");
   if (player_is_ai(g, g->cur)) {
     status(g, "THE SKIPPER", "IS ROLLING", "");
@@ -227,6 +232,7 @@ static void after_score(app_t *a) {
 static void human_frame(app_t *a, const input_t *in) {
   game_t *g = &a->game;
   uint16_t pad = turn_pad(g, in);
+  if (g->mode != MODE_TWO && (in->new1 | in->new2)) g->port = in->new1 ? 0 : 1;
   if (pad & BTN_START) {
     g->paused = true;
     a->bright = 7;
@@ -243,7 +249,7 @@ static void human_frame(app_t *a, const input_t *in) {
         g->held[g->die_sel] ^= 1;
         emit(a, EV_SFX, SFX_HOLD, 0);
       }
-    } else if (pad & (BTN_LEFT | BTN_L)) {
+    } else if (pad & BTN_LEFT) {
       g->die_sel = (uint8_t)((g->die_sel + 4) % 5);
       emit(a, EV_SFX, SFX_TICK, 0);
     } else if (pad & BTN_RIGHT) {

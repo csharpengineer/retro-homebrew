@@ -30,7 +30,7 @@ What each needs:
   cd snes/yacht && node --test tools/test && tests/run.sh
   ```
 
-- **N64 Yacht:** [libdragon](https://github.com/DragonMinded/libdragon) (preview branch) and its toolchain in WSL Ubuntu (`/opt/libdragon`), Node, Windows (for the speech). Its emulator test runs in [ares](https://ares-emu.net/) v148 (`/c/tools/ares/ares-v148` or set `ARES_DIR`):
+- **N64 Yacht:** [libdragon](https://github.com/DragonMinded/libdragon) (preview branch, built with commit `39d0d60`) and its toolchain in WSL Ubuntu (`/opt/libdragon`), Node, Windows (for the speech). Its emulator test runs in [ares](https://ares-emu.net/) v148 (`/c/tools/ares/ares-v148` or set `ARES_DIR`):
 
   ```bash
   cd n64/yacht && ./build.sh test

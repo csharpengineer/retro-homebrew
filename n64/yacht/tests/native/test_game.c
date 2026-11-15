@@ -243,6 +243,31 @@ static void test_title(void) {
   CHECK(A.best == 77, "best score kept");
 }
 
+// Review fixes: the demo banner, rumble on the controller in use, L does nothing.
+static bool skipper_turn(void) { return A.screen == SCREEN_GAME && player_is_ai(&A.game, A.game.cur) && !A.game.over && status_is(0, "THE SKIPPER"); }
+static bool event_port(int type, int port) {
+  for (int i = 0; i < nlog; i++) if (LOG[i].type == type && LOG[i].a == port) return true;
+  return false;
+}
+static void test_review_fixes(void) {
+  start_game(2, 0x1234);
+  wait_until(skipper_turn, 200);
+  CHECK(!strcmp(A.game.banner, "SKIPPER"), "demo turns say SKIPPER like the SNES, got %s", A.game.banner);
+  start_game(0, 0x0042);
+  wait_until(human_waiting, 200);
+  nlog = 0;
+  frame2(0, BTN_A);   // controller 2 rolls against the Skipper
+  wait_until(human_waiting, 100);
+  CHECK(A.game.rolls_left == 2, "controller 2 can play against the Skipper");
+  CHECK(event_port(EV_RUMBLE, 1) && !event_port(EV_RUMBLE, 0), "the rumble goes to controller 2, the one that rolled");
+  int sel = A.game.die_sel;
+  press(BTN_L);
+  CHECK(A.game.die_sel == sel, "L no longer moves the selector");
+  press(BTN_DOWN); press(BTN_A);
+  wait_until(skipper_turn, 2000);
+  CHECK(!strcmp(A.game.banner, "SKIPPER"), "the Skipper's banner");
+}
+
 static void test_selftest(void) {
   app_init(&A, 0, false, BTN_L | BTN_R);
   CHECK(A.screen == SCREEN_SELFTEST && A.selftest.run == 23 && A.selftest.failed == 0, "L+R at power-on runs the self test");
@@ -257,6 +282,7 @@ int main(void) {
   test_full_game_vs_skipper();
   test_two_players();
   test_title();
+  test_review_fixes();
   test_selftest();
   DONE();
 }

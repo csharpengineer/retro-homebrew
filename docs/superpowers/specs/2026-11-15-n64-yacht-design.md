@@ -99,8 +99,9 @@ table, full-colour art, CD-quality voice, and Rumble Pak support.
     about 2.5 MB of the 4 MB.
 - **Dice**:
   - Our own small 3D transform on the CPU (5 cubes, 60 triangles).
-  - They're drawn with rdpq triangles: textured pip faces, a Z-buffer, and
-    per-face lighting through the shade colour.
+  - They're drawn with rdpq triangles: textured pip faces and per-face
+    lighting through the shade colour. As built, no Z-buffer is needed:
+    faces turned away are skipped and the dice are drawn back to front.
   - The tumble animation spins each die along a random axis, then settles
     on the rotation that shows the rolled face.
   - Soft blob shadows sit on the felt.
@@ -125,7 +126,7 @@ table, full-colour art, CD-quality voice, and Rumble Pak support.
   | Title | choose | — | — | choose | Up/Down menu |
   | Dice | first roll, then hold/release | — | roll | pause | Left/Right pick die, Down to card |
   | Card | score box | back to dice (rolls left) | — | pause | Up/Down pick box |
-  | Pause | — | quit to title | — | resume | Up/Down: "SOUND ON/OFF" with A |
+  | Pause | sound on/off | quit to title | — | resume | — |
 
   Two players: player 1 on port 1 and player 2 on port 2. If port 2 is
   empty, port 1 plays both turns.

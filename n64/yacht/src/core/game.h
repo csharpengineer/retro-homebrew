@@ -57,6 +57,7 @@ typedef struct {
   bool paused;
 
   uint8_t mode, cur;       // game mode, player on turn (0/1)
+  uint8_t port;            // vs the Skipper: the controller the human last used
   int16_t scores[2][NUM_CATS];
   uint8_t dice[5];         // 0 = not rolled yet this turn (drawn tilted)
   uint8_t held[5];

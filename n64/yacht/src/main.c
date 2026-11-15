@@ -22,8 +22,11 @@ static void handle_events(void) {
 int main(void) {
   debug_init_isviewer();
   dfs_init(DFS_DEFAULT_LOCATION);
-  display_init(RESOLUTION_320x240, DEPTH_16_BPP, 3, GAMMA_NONE, FILTERS_RESAMPLE_ANTIALIAS_DEDITHER);
+  display_init(RESOLUTION_320x240, DEPTH_16_BPP, 3, GAMMA_NONE, FILTERS_RESAMPLE_ANTIALIAS);
   rdpq_init();
+#ifdef AUTOTEST
+  rdpq_debug_start();   // validates every RDP command; problems go to the log
+#endif
   input_setup();
   audio_setup();
   gfx_init();

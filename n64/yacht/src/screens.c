@@ -60,7 +60,7 @@ static void draw_title(const app_t *a, uint32_t t) {
 static void draw_card(const game_t *g) {
   int cx[2] = { CARD_RULE_M - 4, CARD_X + CARD_W - 7 };   // right edges of the score columns
   int name_x[2] = { (CARD_RULE_L + CARD_RULE_M) / 2 + 1, (CARD_RULE_M + CARD_X + CARD_W - 4) / 2 };
-  bool preview = !g->over && g->rolls_left != 3;
+  bool preview = !g->over && g->rolls_left != 3 && !g->tumble_t;
   for (int p = 0; p < 2; p++)
     ink(name_x[p], CARD_Y + 6, player_name(g, p, true), p == g->cur && !g->over ? C_RED_INK : C_INK, ALIGN_CENTER);
   for (int c = 0; c < NUM_CATS; c++) {

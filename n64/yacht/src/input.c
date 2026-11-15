@@ -18,6 +18,16 @@ static uint16_t map(joypad_buttons_t b) {
   return m;
 }
 
+static uint16_t stick_held(joypad_port_t p) {
+  uint16_t m = 0;
+  int y = joypad_get_axis_held(p, JOYPAD_AXIS_STICK_Y), x = joypad_get_axis_held(p, JOYPAD_AXIS_STICK_X);
+  if (y > 0) m |= BTN_UP;
+  if (y < 0) m |= BTN_DOWN;
+  if (x > 0) m |= BTN_RIGHT;
+  if (x < 0) m |= BTN_LEFT;
+  return m;
+}
+
 static uint16_t stick(joypad_port_t p) {
   uint16_t m = 0;
   int y = joypad_get_axis_pressed(p, JOYPAD_AXIS_STICK_Y), x = joypad_get_axis_pressed(p, JOYPAD_AXIS_STICK_X);
@@ -39,8 +49,8 @@ void input_read(input_t *in) {
   joypad_poll();
   in->new1 = map(joypad_get_buttons_pressed(JOYPAD_PORT_1)) | stick(JOYPAD_PORT_1);
   in->new2 = map(joypad_get_buttons_pressed(JOYPAD_PORT_2)) | stick(JOYPAD_PORT_2);
-  in->held1 = map(joypad_get_buttons_held(JOYPAD_PORT_1));
-  in->held2 = map(joypad_get_buttons_held(JOYPAD_PORT_2));
+  in->held1 = map(joypad_get_buttons_held(JOYPAD_PORT_1)) | stick_held(JOYPAD_PORT_1);
+  in->held2 = map(joypad_get_buttons_held(JOYPAD_PORT_2)) | stick_held(JOYPAD_PORT_2);
   in->p2_present = joypad_is_connected(JOYPAD_PORT_2);
 }
 
