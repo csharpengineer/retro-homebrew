@@ -1,0 +1,10 @@
+yacht|Yacht!
+fullhouse|Full house!
+four|Four of a kind!
+straight|Straight!
+youwin|You win!
+skipper|The Skipper wins!
+tie|It's a tie.
+welcome|Welcome aboard.
+p1wins|Player one wins!
+p2wins|Player two wins!
