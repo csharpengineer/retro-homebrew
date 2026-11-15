@@ -6,11 +6,11 @@
 const fs = require('fs');
 const path = require('path');
 const brr = require('./brr');
+const speechLines = require('./speech_lines');
 
 const ROOT = path.join(__dirname, '..');
 const RATE = 12000, BUFFER = 16384, PEAK = 0.85 * 32767;
-const order = fs.readFileSync(path.join(ROOT, '../../tandy1000/yacht/tools/speech.txt'), 'utf8')
-  .split(/\r?\n/).filter(Boolean).map((l) => l.split('|')[0]);
+const order = speechLines().map((l) => l.name);
 
 function readWav(file) {
   const b = fs.readFileSync(file);

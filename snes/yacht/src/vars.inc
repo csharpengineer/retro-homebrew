@@ -16,6 +16,8 @@
   pad1_acc    dw      ; presses gathered by NMI, collected by WaitFrame
   pad2_acc    dw
   pad2_last   dw
+  pad2_on     db      ; 1 while a controller is plugged into port 2 (read in NMI)
+  pad2_seen   dw      ; 1 once controller 2 has pressed anything
   inidisp_v   db      ; brightness written in NMI
   dma_src     dw      ; 24-bit source pointer for DMA helpers (with dma_bank)
   dma_bank    db
@@ -121,6 +123,7 @@
   text_shadow dsb 2048 ; BG3 tilemap, 32x32 entries
 .ENDE
 
+.DEFINE VERSION_STR "V1.1"   ; shown on the title; also VERSION in header.inc
 .DEFINE STACK_TOP $1EFF
 .DEFINE EMPTY     $FFFF
 .DEFINE NUM_CATS  12

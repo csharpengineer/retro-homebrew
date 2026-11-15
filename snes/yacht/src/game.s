@@ -3,8 +3,8 @@
 
 .DEFINE HILITE_HDMA $1300       ; window table for the scorecard row highlight
 .DEFINE CARD_ROW0   3           ; text row of the first box
-.DEFINE COL_P0      13          ; rightmost digit of player 0's scores
-.DEFINE COL_P1      17
+.DEFINE COL_P0      13          ; rightmost digit of player 0's scores (and of its name)
+.DEFINE COL_P1      17          ; the card's column rules sit at x=87 and x=116 (game.js)
 .DEFINE PANEL_COL   20          ; right-hand panel text starts here
 .DEFINE ROW_BANNER  1
 .DEFINE ROW_ROLLS   16
@@ -276,12 +276,20 @@ MoveCursor:
 
 ; Returns A16-safe: new presses for whoever controls the player on turn.
 ; Player 1 (cur 0) uses controller 1; player 2 uses controller 2, or
-; controller 1 when nobody is holding controller 2.
+; controller 1 when no second controller is plugged in.
 TurnPad:
   lda game_mode
   bne @both           ; vs Skipper or demo: either controller
   lda cur
-  bne @both           ; two players, player 2: controller 2 (or 1)
+  beq @p1
+  lda pad2_on
+  beq @p1             ; one controller: it plays both sides
+  A16
+  lda pad2_new
+  sta turn_pad
+  A8
+  rts
+@p1:
   A16
   lda pad1_new
   sta turn_pad
@@ -365,13 +373,27 @@ HumanTurn:
   jmp @card
 
 @tray:
+  ; X rolls. A makes the first roll too (nothing to hold yet); after that A
+  ; holds or releases the die under the cursor, so it can't reroll by mistake.
+  A16
+  lda turn_pad
+  and #BTN_X
+  A8
+  bne @roll
   A16
   lda turn_pad
   and #BTN_A
   A8
   beq @t1
   lda rolls_left
-  beq @k
+  cmp #3
+  beq @roll
+  jmp @hold
+@roll:
+  lda rolls_left
+  bne @doroll
+  jmp @k
+@doroll:
   jsr RollDice
   lda rolls_left
   bne @again
@@ -379,10 +401,10 @@ HumanTurn:
   sta focus
   jsr ShowHilite
   jsr StatusChoose
-  bra @k
+  jmp @k
 @again:
   jsr StatusAgain
-  bra @k
+  jmp @k
 @t1:
   A16
   lda turn_pad
@@ -419,9 +441,10 @@ HumanTurn:
 @t3:
   A16
   lda turn_pad
-  and #BTN_Y|BTN_X
+  and #BTN_Y          ; (Y still holds, as in the first version)
   A8
   beq @t4
+@hold:
   ; holding is allowed between the first and the last roll (as on the Tandy)
   lda rolls_left
   cmp #3
@@ -864,7 +887,7 @@ DrawBoard:
   lda #6
   jsr PrintAt
   ldx #StrRolls
-  ldy #ROW_ROLLS*32+PANEL_COL+1
+  ldy #ROW_ROLLS*32+PANEL_COL
   lda #3
   jsr PrintAt
   stz tmp3
@@ -1126,14 +1149,26 @@ StatusYourTurn:
   jmp StatusTwo
 StatusAgain:
   jsr TurnBanner
-  ldx #StrARolls
-  ldy #StrYHolds
+  ldx #StrAHolds
+  ldy #StrXRolls
   jmp StatusTwo
 StatusChoose:
   jsr TurnBanner
   ldx #StrPickBox
-  ldy #StrAScores
-  jmp StatusTwo
+  ldy #StrBlank
+  jsr StatusTwo
+  ldx #StrAScores
+  ldy #(ROW_STATUS+1)*32+PANEL_COL
+  lda #3
+  jsr PrintAt
+  lda rolls_left
+  beq @r              ; rolls left: B goes back to the dice
+  ldx #StrBBack
+  ldy #(ROW_STATUS+2)*32+PANEL_COL
+  lda #3
+  jmp PrintAt
+@r:
+  rts
 StatusSkipper:
   ldx #StrSkpTurn
   jsr Banner
@@ -1298,22 +1333,25 @@ GameSprites:
   inx
   cpx #5
   bne @shadow
-  ; rolls left: three small dice, lit or spent
+  ; rolls left: three small dice, lit or spent, 14 px apart after ROLLS
   ldx #0
 @pip:
   A16
   txa
   asl a
+  sta tmp2
   asl a
   asl a
   asl a
+  sec
+  sbc tmp2            ; x * 14
   clc
-  adc #208
+  adc #(PANEL_COL+5)*8+2
   sta spr_x
   lda #TILE_PIP
   sta spr_tile
   A8
-  lda #ROW_ROLLS*8-4
+  lda #ROW_ROLLS*8-5
   sta spr_y
   txa
   cmp rolls_left
@@ -1548,8 +1586,9 @@ StrP2Turn:     .db "PLAYER 2", 0
 StrSkpTurn:    .db "SKIPPER", 0
 StrPressA:     .db "PRESS A", 0
 StrToRoll:     .db "TO ROLL", 0
-StrARolls:     .db "A: ROLL", 0
-StrYHolds:     .db "Y: HOLD", 0
+StrAHolds:     .db "A: HOLD", 0
+StrXRolls:     .db "X: ROLL", 0
+StrBBack:      .db "B: BACK", 0
 StrPickBox:    .db "PICK A BOX", 0
 StrAScores:    .db "A: SCORE", 0
 StrTheSkipper: .db "THE SKIPPER", 0

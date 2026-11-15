@@ -42,13 +42,17 @@ local function ref_holds(d, open)
     if c[f] > 0 then distinct = distinct + 1; if c[f] > largest then largest = c[f] end end
   end
   -- chase a straight: keep one of each face in the run of five (large open) or
-  -- four (only small open) that already has the most faces; ties keep the lower run
+  -- four (only small open) worth the most: faces * 2, plus 1 when it already
+  -- holds four in a row; ties keep the lower run
   if distinct >= 4 and (open[9] or open[10]) then
     local len = open[10] and 5 or 4
     local best, best_n = 1, -1
     for first = 1, 7 - len do
       local n = 0
-      for f = first, first + len - 1 do if c[f] > 0 then n = n + 1 end end
+      for f = first, first + len - 1 do if c[f] > 0 then n = n + 2 end end
+      for s = first, first + len - 4 do
+        if c[s] > 0 and c[s + 1] > 0 and c[s + 2] > 0 and c[s + 3] > 0 then n = n + 1 break end
+      end
       if n > best_n then best, best_n = first, n end
     end
     for f = best, best + len - 1 do if c[f] > 0 then hold_one(f) end end
@@ -112,6 +116,13 @@ function test()
   -- Fours (0-11=-11) and Little Straight with dice 6,6,6,6,6 (0-8=-8) vs Big (0-8=-8): Little wins
   local o3 = {} for c = 1, 12 do o3[c] = (c == 9 or c == 10) end
   check(check_case({ 6, 6, 6, 6, 6 }, o3, "tie") == 8, "tie should go to the first box")
+  -- 1,3,4,5,6 with both straights open: both runs of five have four faces, but
+  -- only 3-6 keeps the small straight he already has, so he holds 3,4,5,6
+  oracle_call(2, { 1, 3, 4, 5, 6 }, 1, all_open())
+  local want = { 0, 1, 1, 1, 1 }
+  for i = 1, 5 do
+    check(read8(ORACLE + O_HOLDS + i - 1) == want[i], "with 1,3,4,5,6 die " .. i .. " hold is wrong: should keep 3-6")
+  end
   -- random cases
   for n = 1, 3000 do
     local d, open, any = {}, {}, false

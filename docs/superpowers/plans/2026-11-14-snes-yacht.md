@@ -1,5 +1,7 @@
 # SNES YACHT Implementation Plan
 
+> **Since v1.1:** the straights are Small (any four in a row, 30) and Large (five in a row, 40), not Yacht's Little/Big; X rolls and A holds; "Four alike!" is spoken. See `snes/yacht/README.txt`.
+
 > Layout note: written when this work lived in a Tandy repo as `yacht/` and `snes/`. In this repo those are `tandy1000/yacht/` and `snes/yacht/`.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.

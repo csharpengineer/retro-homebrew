@@ -39,7 +39,13 @@ NmiHandler:
   lda hdma_en
   sta HDMAEN
 @late:
-  ; Auto joypad read finishes a few lines into vblank.
+  ; Auto joypad read finishes a few lines into vblank. On the short path (main
+  ; loop late) we could get here before it has even started, so idle a little
+  ; first: the extra port-2 read below must not land inside the auto read.
+  ldx #24
+-:
+  dex
+  bne -
 -:
   lda HVBJOY
   and #$01
@@ -64,6 +70,19 @@ NmiHandler:
   lda pad2
   sta pad2_last
   inc frame
+  ; One more bit from port 2 after the 16 the auto read took: a standard
+  ; controller sends 1s from here on, an empty port reads 0. A pad that has
+  ; ever pressed a button also counts (some third-party pads send 0s here).
+  lda pad2
+  beq +
+  ldx #1
+  stx pad2_seen
++:
+  A8
+  lda JOYSER1
+  and #$01
+  ora pad2_seen
+  sta pad2_on
 
   AXY16
   plb

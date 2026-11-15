@@ -22,11 +22,11 @@ function test()
   for row = 0, 27 do
     local s = row_text(row)
     if s:find("SELF TEST", 1, true) then found.title = true end
-    if s:find("22 CHECKS RUN", 1, true) then found.runs = true end
+    if s:find("23 CHECKS RUN", 1, true) then found.runs = true end
     if s:find("0 FAILED", 1, true) then found.failed = true end
   end
   check(found.title, "no SELF TEST heading in the BG3 map")
-  check(found.runs, "no '22 CHECKS RUN' line")
+  check(found.runs, "no '23 CHECKS RUN' line")
   check(found.failed, "no '0 FAILED' line")
   local bgmode = 0
   shot("text")

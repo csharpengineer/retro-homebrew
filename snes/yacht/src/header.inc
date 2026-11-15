@@ -17,7 +17,7 @@
   SRAMSIZE $01
   COUNTRY $01
   LICENSEECODE $00
-  VERSION $00
+  VERSION $01        ; v1.1 (0 was the first release)
 .ENDSNES
 
 .SNESNATIVEVECTOR

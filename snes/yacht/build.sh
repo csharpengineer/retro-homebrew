@@ -12,7 +12,11 @@ build/spc/driver.o
 ' > build/spc/link.txt
 "$W/wlalink.exe" -b build/spc/link.txt build/spc/driver.bin || exit 1
 node tools/spcimage.js || exit 1
-[ -f build/speech/welcome.wav ] || tools/speech.sh || exit 1
+# speech: rendered again whenever the phrases change
+node tools/speech_lines.js || exit 1
+if ! cmp -s build/speech/lines.txt build/speech/rendered.txt; then
+  tools/speech.sh && cp build/speech/lines.txt build/speech/rendered.txt || exit 1
+fi
 node tools/voice.js > build/voice.log || exit 1
 "$W/wla-65816.exe" -I src -o build/main.o src/main.s || exit 1
 "$W/wlalink.exe" -S -v link.txt build/yacht.sfc > build/link.log || { cat build/link.log; exit 1; }

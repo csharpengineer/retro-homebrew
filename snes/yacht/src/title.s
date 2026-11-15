@@ -7,6 +7,7 @@
 .DEFINE CLOUD_HDMA $1200
 .DEFINE IDLE_FRAMES 1200          ; 20 seconds, then the demo plays
 .DEFINE MENU_ROW   19
+.DEFINE MENU_COL   10          ; menu text column; the cursor die sits 16 px left of it
 
 .SECTION "Title" FREE
 
@@ -154,6 +155,8 @@ TitleRun:
   jmp @loop
 
 @leave:
+  lda #AC_STOP        ; the tune ends with the title (as on the Tandy)
+  jsr AudioCmd
   jsr SeedRng
   lda pick_mode
   sta title_choice
@@ -166,26 +169,30 @@ MenuModes:
 TitleMenuText:
   jsr ClearText
   ldx #StrMenu0
-  ldy #MENU_ROW*32+12
+  ldy #MENU_ROW*32+MENU_COL
   lda #0
   jsr @pal
   jsr PrintAt
   ldx #StrMenu1
-  ldy #(MENU_ROW+2)*32+12
+  ldy #(MENU_ROW+2)*32+MENU_COL
   lda #1
   jsr @pal
   jsr PrintAt
   ldx #StrMenu2
-  ldy #(MENU_ROW+4)*32+12
+  ldy #(MENU_ROW+4)*32+MENU_COL
   lda #2
   jsr @pal
   jsr PrintAt
   ldx #StrBest
-  ldy #(MENU_ROW+6)*32+12
+  ldy #(MENU_ROW+6)*32+MENU_COL
+  lda #3
+  jsr PrintAt
+  ldx #StrVersion
+  ldy #26*32+1
   lda #3
   jsr PrintAt
   ldx best
-  ldy #(MENU_ROW+6)*32+26
+  ldy #(MENU_ROW+6)*32+MENU_COL+15
   lda #1
   jmp PrintNum
 @pal:
@@ -202,6 +209,7 @@ StrMenu0: .db "PLAY THE SKIPPER", 0
 StrMenu1: .db "TWO PLAYERS", 0
 StrMenu2: .db "WATCH A DEMO", 0
 StrBest:  .db "BEST SCORE", 0
+StrVersion: .db VERSION_STR, 0
 
 ; Loads the scene and sets up the PPU. Screen must be off.
 TitleSetup:
@@ -413,7 +421,7 @@ TitleAnimate:
   jsr SpritesBegin
   ; menu cursor: a small die that bobs beside the chosen line
   A16
-  lda #80
+  lda #MENU_COL*8-16
   sta spr_x
   A8
   lda menu_sel
@@ -573,11 +581,12 @@ LogoGlint:
 LogoLevels:   .dw LOGO_LV0, LOGO_LV1, LOGO_LV2
 LogoLevelsHi: .dw LOGO_LV0_HI, LOGO_LV1_HI, LOGO_LV2_HI
 
-; Menu panel window: off above line 144, x 72-208 for lines 144-211, then off.
+; Menu panel window: off above line 144, x 52-219 for lines 144-211, then off.
+; (12 px around the cursor die and the longest line; tests/layout.lua reads the third entry.)
 TitleWindow:
   .db 127, $FF, $00
   .db 17, $FF, $00
-  .db 68, 72, 208
+  .db 68, MENU_COL*8-28, MENU_COL*8+139
   .db 1, $FF, $00
   .db 0
 

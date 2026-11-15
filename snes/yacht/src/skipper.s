@@ -192,16 +192,19 @@ SkipperHolds:
   bne @d
 
   ; chase a straight: keep one of each face in the run of five (large box
-  ; open) or four (only the small one) that already has the most faces
+  ; open) or four (only the small one) that already has the most faces,
+  ; preferring one that already holds four in a row
   lda ai_dl
   cmp #4
-  bcc @nost
+  bcc @nostj
   lda #CAT_LITTLE
   jsr IsOpen
   bcs @chase
   lda #CAT_BIG
   jsr IsOpen
-  bcc @nost
+  bcs @chase
+@nostj:
+  jmp @nost
 @chase:
   lda #4
   sta ai_w            ; run length
@@ -232,6 +235,36 @@ SkipperHolds:
   inx
   dec ai_dh
   bne @cnt
+  ; worth: faces * 2, plus 1 if the run already holds four in a row (so a tie
+  ; never throws away a small straight he has)
+  asl tmp0
+  lda ai_f
+  sta tmp1            ; first face of a run of four inside this run
+  lda ai_w
+  sec
+  sbc #3
+  sta tmp1+1          ; how many runs of four fit
+@r4:
+  A16
+  lda tmp1
+  and #$00FF
+  tax
+  A8
+  lda counts,x
+  beq @r4n
+  lda counts+1,x
+  beq @r4n
+  lda counts+2,x
+  beq @r4n
+  lda counts+3,x
+  beq @r4n
+  inc tmp0
+  bra @r4d
+@r4n:
+  inc tmp1
+  dec tmp1+1
+  bne @r4
+@r4d:
   lda tmp0
   cmp ai_bw
   beq @wn             ; ties keep the lower run

@@ -17,6 +17,7 @@ end
 
 function wait_human()
   wait_until(function() local s = v8("game_state") return s == 0 or s == 2 end, 4000, "a human turn or game over")
+  wait(2)            -- the frame's text reaches VRAM in the next vblank
   return v8("game_state")
 end
 
@@ -25,7 +26,7 @@ end
 function human_turn(rolls, moves, shot_name)
   for _ = 1, rolls do
     if v8("rolls_left") == 0 then break end
-    press(1, { "a" }, 2)
+    press(1, { "x" }, 2)                 -- X rolls (A only rolls the first time, then holds)
     wait_human()
   end
   if v8("focus") == 0 then press(1, { "down" }, 2) end     -- move to the scorecard

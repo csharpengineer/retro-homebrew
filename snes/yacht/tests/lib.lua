@@ -56,7 +56,8 @@ end
 function start_test()
   co = coroutine.create(test)
   emu.addEventCallback(function()
-    for port = 1, 2 do emu.setInput(held[port], port - 1) end
+    -- Mesen 2.1.1 takes the controller port as the third argument (the second is ignored)
+    for port = 1, 2 do emu.setInput(held[port], 0, port - 1) end
   end, emu.eventType.inputPolled)
   emu.addEventCallback(function()
     frames = frames + 1

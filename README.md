@@ -41,7 +41,9 @@ docs/superpowers/     design notes and implementation plans
 
 The SNES port reads its music and speech lines straight from the Tandy
 source (`tandy1000/yacht/src/data.asm`, `tandy1000/yacht/tools/speech.txt`),
-so the two versions stay in step.
+so the two versions stay in step. Where the SNES differs on purpose it says so:
+its own wording for a phrase goes in `snes/yacht/tools/speech_snes.txt`, and its
+straights are the poker-dice kind (see `snes/yacht/README.txt`).
 
 Adding a game: make `<console>/<game>/` with its own `build.sh` and a README,
 and add a row to the table above.

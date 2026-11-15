@@ -1,5 +1,7 @@
 # YACHT for the Super Nintendo — design
 
+> **Since v1.1:** the straights are Small (any four in a row, 30) and Large (five in a row, 40), not Yacht's Little/Big; X rolls and A holds; "Four alike!" is spoken. See `snes/yacht/README.txt`.
+
 > Layout note: written when this work lived in a Tandy repo as `yacht/` and `snes/`. In this repo those are `tandy1000/yacht/` and `snes/yacht/`.
 
 Date: 2026-11-14

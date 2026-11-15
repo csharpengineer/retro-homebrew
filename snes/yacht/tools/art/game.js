@@ -14,7 +14,7 @@ const BANNER = { x: 154, y: 2, w: 100, h: 20 };
 const TRAY = { x: 154, y: 24, w: 100, h: 90 };
 const PLAQUE = { x: 154, y: 116, w: 100, h: 104 };
 // sprite positions of the five dice (the die body sits 3 px in, 1 px down)
-const DIE_X = [157, 189, 221, 173, 205], DIE_Y = [28, 28, 28, 64, 64];
+const DIE_X = [157, 189, 221, 173, 205], DIE_Y = [34, 34, 34, 70, 70];   // centered in the felt
 
 // Deterministic noise, tileable with period p.
 function noise(x, y, p = 16, seed = 1) {
@@ -60,7 +60,7 @@ for (const b of [CARD, BANNER, TRAY, PLAQUE]) dropShadow(wood, b, 3, 4, 6);
 // ---------------------------------------------------------------- BG1: card, tray, plaques
 const card = new Raster(W, H);
 // parchment with darker edges and alternating row bands
-const ROW0 = 24, ROWH = 16;
+const ROW0 = 24, ROWH = 16, RULE_L = 87, RULE_M = 116;
 card.roundRect(CARD.x, CARD.y, CARD.w, CARD.h, 6, (x, y) => {
   const ex = Math.min(x - CARD.x, CARD.x + CARD.w - x), ey = Math.min(y - CARD.y, CARD.y + CARD.h - y);
   const edge = Math.max(0, 1 - Math.min(ex, ey) / 10);
@@ -70,7 +70,9 @@ card.roundRect(CARD.x, CARD.y, CARD.w, CARD.h, 6, (x, y) => {
   if (y < ROW0 - 5) c = mix(c, hex('#b48a52'), 0.45);                            // header band
   if (y >= ROW0 - 4 && (y - ROW0 + 4) % ROWH === 0 && x > CARD.x + 4 && x < CARD.x + CARD.w - 4)
     c = mix(c, hex('#a88a5c'), 0.5);                                               // row rules
-  if ((x === 95 || x === 120) && y > CARD.y + 3 && y < CARD.y + CARD.h - 4) c = mix(c, hex('#a88a5c'), 0.6); // columns
+  // column rules: just right of the box names (columns 1-10) and in the gap between the
+  // players' columns (text columns 11-13 and 15-17), so the names sit between them
+  if ((x === RULE_L || x === RULE_M) && y > CARD.y + 3 && y < CARD.y + CARD.h - 4) c = mix(c, hex('#a88a5c'), 0.6);
   return c;
 });
 // a red-inked border line inside the card edge

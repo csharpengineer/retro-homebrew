@@ -1,5 +1,6 @@
 // Converts the raw RGB frames saved by tests/lib.lua shot() into PNGs.
 // Usage: node tools/raw2png.js build/shots
+// Also writes a 3x copy of each into <dir>/big/ for looking at details.
 const fs = require('fs');
 const path = require('path');
 const png = require('./png');
@@ -19,5 +20,14 @@ for (const f of fs.readdirSync(dir)) {
     rgba[i * 4 + 3] = 255;
   }
   png.write(path.join(dir, f.replace(/\.raw$/, '.png')), w, h, rgba);
+  const S = 3, big = Buffer.alloc(w * h * 4 * S * S);
+  for (let y = 0; y < h * S; y++) {
+    for (let x = 0; x < w * S; x++) {
+      const from = (Math.floor(y / S) * w + Math.floor(x / S)) * 4;
+      rgba.copy(big, (y * w * S + x) * 4, from, from + 4);
+    }
+  }
+  fs.mkdirSync(path.join(dir, 'big'), { recursive: true });
+  png.write(path.join(dir, 'big', f.replace(/\.raw$/, '.png')), w * S, h * S, big);
   fs.unlinkSync(path.join(dir, f));
 }

@@ -9,12 +9,6 @@ ROOT=$(cd . && pwd -W 2>/dev/null || pwd)
 OUT="$ROOT/build"
 mkdir -p build/shots build/results build/lua
 [ -f build/yacht.sfc ] || { echo "FAIL: build/yacht.sfc missing"; exit 1; }
-# Random power-on RAM and state, so nothing can lean on leftover memory.
-node -e '
-const fs=require("fs"),p=process.argv[1];const s=JSON.parse(fs.readFileSync(p,"utf8").replace(/^﻿/,""));
-s.Snes.RamPowerOnState="Random";s.Snes.EnableRandomPowerOnState=true;
-s.Debug.ScriptWindow.AllowIoOsAccess=true;
-fs.writeFileSync(p,JSON.stringify(s,null,2));' "$MESEN_DIR/settings.json" || exit 1
 if [ $# -eq 0 ]; then set -- $(ls tests/*.lua | grep -vE "lib.lua|/yacht_" | sed 's#tests/##; s#\.lua$##'); fi
 fails=0
 for t in "$@"; do
@@ -32,6 +26,15 @@ for t in "$@"; do
     echo "start_test()"
   } > "$f"
   rm -f build/results/$t.txt
+  # Random power-on RAM and state, so nothing can lean on leftover memory.
+  # Controller 2 is unplugged unless the test starts with "-- port2: pad".
+  P2=None
+  head -1 tests/$t.lua | grep -q '^-- port2: pad' && P2=SnesController
+  node -e '
+const fs=require("fs"),p=process.argv[1];const s=JSON.parse(fs.readFileSync(p,"utf8").replace(/^﻿/,""));
+s.Snes.RamPowerOnState="Random";s.Snes.EnableRandomPowerOnState=true;s.Snes.Port2.Type=process.argv[2];
+s.Debug.ScriptWindow.AllowIoOsAccess=true;
+fs.writeFileSync(p,JSON.stringify(s,null,2));' "$MESEN_DIR/settings.json" "$P2" || exit 1
   # every test starts with a fresh cart: no battery save left by an earlier test
   rm -f "$MESEN_DIR/Saves/yacht.srm"
   timeout 300 "$MESEN" --testrunner build/yacht.sfc "$f" > build/results/$t.log 2>&1
