@@ -9,6 +9,7 @@ console it runs on, with its own build script, tools and tests.
 |---|---|---|---|
 | Tandy 1000 SL | **Yacht** | The classic dice game against "the Skipper" or a friend. 16-color graphics, three-voice music and digitized speech, in 8086 assembly. Boots from its own floppy image or runs under DOS/DeskMate. | [`tandy1000/yacht`](tandy1000/yacht) |
 | Super Nintendo | **Yacht** | The same game rebuilt as a cartridge: sunset title with layered scrolling sea, a captain's-table game screen, tumbling dice, "Drunken Sailor" on a custom SPC700 driver, speech, battery-saved best score. 65816 assembly. | [`snes/yacht`](snes/yacht) |
+| Nintendo 64 | **Yacht** | The SNES version rebuilt in C with libdragon: real 3D dice tumbling on felt, a sunset title with rolling waves, the same Skipper and speech, Rumble Pak and an EEPROM-saved best score. Its game logic is tested against games played by the SNES ROM. | [`n64/yacht`](n64/yacht) |
 
 ## Building
 
@@ -17,6 +18,7 @@ Each game builds on its own from its folder with Git Bash on Windows:
 ```bash
 cd snes/yacht && ./build.sh      # -> build/yacht.sfc
 cd tandy1000/yacht && ./build.sh # -> build/YACHT.COM, build/YACHT.DSK
+cd n64/yacht && ./build.sh       # -> build/yacht.z64
 ```
 
 What each needs:
@@ -26,6 +28,12 @@ What each needs:
 
   ```bash
   cd snes/yacht && node --test tools/test && tests/run.sh
+  ```
+
+- **N64 Yacht:** [libdragon](https://github.com/DragonMinded/libdragon) (preview branch) and its toolchain in WSL Ubuntu (`/opt/libdragon`), Node, Windows (for the speech). Its emulator test runs in [ares](https://ares-emu.net/) v148 (`/c/tools/ares/ares-v148` or set `ARES_DIR`):
+
+  ```bash
+  cd n64/yacht && ./build.sh test
   ```
 
 Nothing is downloaded at build time and there are no npm dependencies: every
@@ -44,6 +52,9 @@ source (`tandy1000/yacht/src/data.asm`, `tandy1000/yacht/tools/speech.txt`),
 so the two versions stay in step. Where the SNES differs on purpose it says so:
 its own wording for a phrase goes in `snes/yacht/tools/speech_snes.txt`, and its
 straights are the poker-dice kind (see `snes/yacht/README.txt`).
+
+The N64 port follows the SNES one (v1.1 rules, Skipper and wording) and reuses
+its tune reader, phrase list, drawing canvas and font shapes from `snes/yacht/tools`.
 
 Adding a game: make `<console>/<game>/` with its own `build.sh` and a README,
 and add a row to the table above.
