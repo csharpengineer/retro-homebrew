@@ -5,6 +5,9 @@ The SNES YACHT v1.1 (../../snes/yacht), rebuilt for the N64: the same rules,
 Skipper, voice lines and tunes, with real 3D dice tumbling on the felt,
 full-colour art and Rumble Pak support. Version 1.0 (shown on the title).
 
+Music: the Tandy tunes, re-voiced; in the title tune the plucked chords play
+on the beat rather than the off-beat.
+
 Rules: the SNES's. Small Straight is any four in a row (30), Large Straight
 five in a row (40); no upper bonus.
 

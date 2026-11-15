@@ -66,3 +66,30 @@ void audio_frame(bool muted) {
 }
 
 bool audio_voice_busy(void) { return mixer_ch_playing(CH_VOICE); }
+
+#ifdef AUTOTEST
+// Plays a tune from the start through the mixer and prints the mixed left
+// channel (hex, 512 samples a line) for tools/pcmcheck.js.
+void audio_capture(int t, int samples) {
+  for (int c = 0; c < NUM_CH; c++) mixer_ch_stop(c);
+  mixer_ch_set_vol(CH_MUSIC, 1, 1);
+  wav64_play(tune[t], CH_MUSIC);
+  static int16_t buf[2 * 512];
+  static char line[512 * 4 + 2];
+  static const char HEX[] = "0123456789abcdef";
+  debugf("PCM %d %d\n", t, audio_get_frequency());
+  for (int n = 0; n < samples; n += 512) {
+    mixer_poll(buf, 512);
+    for (int i = 0; i < 512; i++) {
+      uint16_t v = (uint16_t)buf[i * 2];
+      line[i * 4] = HEX[v >> 12]; line[i * 4 + 1] = HEX[(v >> 8) & 15];
+      line[i * 4 + 2] = HEX[(v >> 4) & 15]; line[i * 4 + 3] = HEX[v & 15];
+    }
+    line[512 * 4] = '\n'; line[512 * 4 + 1] = 0;
+    debugf("A%s", line);
+  }
+  debugf("ENDPCM\n");
+  mixer_ch_stop(CH_MUSIC);
+  was_muted = -1;   // restore the levels on the next frame
+}
+#endif

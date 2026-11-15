@@ -5,6 +5,7 @@
 // turns into PNGs.
 #ifdef AUTOTEST
 #include "autotest.h"
+#include "platform.h"
 #include <string.h>
 
 static int step, wait_frames, speed = 1;
@@ -33,6 +34,8 @@ int autotest_input(app_t *a, input_t *in) {
       selftest_t st;
       run_selftest(&st);
       debugf("SELFTEST run=%d failed=%d\n", st.run, st.failed);
+      a->muted = true;                        // the test plays nothing aloud
+      audio_capture(TUNE_TITLE, 32000 * 20);   // the title tune as the mixer plays it, past its loop
       wait_frames = 60;
       step++;
       break;

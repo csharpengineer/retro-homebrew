@@ -6,6 +6,9 @@ void audio_setup(void);
 void audio_event(const event_t *e, bool muted);
 void audio_frame(bool muted);      // ducking and mixing; call every frame
 bool audio_voice_busy(void);
+#ifdef AUTOTEST
+void audio_capture(int tune, int samples);
+#endif
 
 void input_setup(void);
 void input_read(input_t *in);      // polls the controllers

@@ -24,4 +24,5 @@ check "^SELFTEST run=23 failed=0" "self test: 23 checks, 0 failed"
 # the SNES ROM's demo board for seed 1234 (tests/native/test_game.c GOLDEN)
 check "^BOARD 1234 1 4 0 12 0 12 26 20 30 40 24 0 3 6 9 8 0 18 28 8 30 40 23 0$" "demo board matches the SNES"
 check "^AUTOTEST DONE" "scripted session finished"
+if node tools/pcmcheck.js "$LOG"; then echo "PASS title tune: every instrument on the beat through the loop"; else echo "FAIL title tune timing"; fails=$((fails+1)); fi
 [ $fails -eq 0 ] || { echo "$fails failed (log: $LOG)"; exit 1; }

@@ -2,7 +2,8 @@
 // sfx_*.wav) for audioconv64. The notes are the Tandy's, read from
 // tandy1000/yacht/src/data.asm by the SNES port's tools/tunes.js (same order,
 // instruments and the title's shaker); here a small synth plays them offline at
-// 32 kHz instead of the SNES's sound chip.
+// 32 kHz instead of the SNES's sound chip. One change: the title's plucked
+// chords play on the beat (n64Tunes).
 const path = require('path');
 const fs = require('fs');
 const tunes = require('../../../snes/yacht/tools/tunes');
@@ -16,7 +17,9 @@ const freq = (note) => 440 * 2 ** ((note + 44 - 69) / 12);   // note 1 = N_A2 (M
 let seed = 1;
 const rnd = () => ((seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff) * 2 - 1;
 
-// One note: returns samples (longer than len when the instrument rings on).
+// One note: returns samples. Like the SNES driver, which keys a note off when
+// its length runs out, every pitched note stops at its written length with a
+// short release; letting notes ring over the next ones smears the rhythm.
 function voice(inst, note, len) {
   const f = freq(note), out = [];
   const add = (n, fn) => { for (let i = 0; i < n; i++) out.push(fn(i / RATE, i)); };
@@ -24,8 +27,8 @@ function voice(inst, note, len) {
   switch (inst) {
     case 'lead': {   // steel drum: bright partials that die away at different speeds
       const P = [[1, 1, 3], [2, 0.55, 5], [3, 0.12, 7], [4, 0.28, 6], [6, 0.06, 9]];
-      add(Math.max(len, 0.5 * RATE), (t) => P.reduce((s, [h, a, d]) => s + a * Math.exp(-d * t) * Math.sin(2 * Math.PI * f * h * t), 0)
-        * Math.min(1, t * 400) * 0.32 * rel(t, len / RATE + 0.25));
+      add(len + 0.06 * RATE, (t) => P.reduce((s, [h, a, d]) => s + a * Math.exp(-d * t) * Math.sin(2 * Math.PI * f * h * t), 0)
+        * Math.min(1, t * 400) * 0.32 * rel(t, len / RATE));
       break;
     }
     case 'bass':
@@ -35,11 +38,11 @@ function voice(inst, note, len) {
     case 'pluck': {   // Karplus-Strong string
       const n = Math.round(RATE / f), buf = Array.from({ length: n }, () => rnd() * 0.5);
       let p = 0;
-      add(Math.max(len, 0.35 * RATE), (t) => {
+      add(len + 0.06 * RATE, (t) => {
         const v = buf[p], nx = buf[(p + 1) % n];
         buf[p] = (v + nx) * 0.5 * 0.996;
         p = (p + 1) % n;
-        return v * 0.42 * rel(t, len / RATE + 0.15);
+        return v * 0.42 * rel(t, len / RATE);
       });
       break;
     }
@@ -96,9 +99,25 @@ function writeWav(name, s, peak) {
   fs.writeFileSync(path.join(ASSETS, name + '.wav'), b);
 }
 
+// The tunes as the N64 plays them: the SNES/Tandy streams, except that the
+// title's plucked chords (channel 2) sit on the beat instead of the off-beat.
+// Their stream opens with a half-beat rest; moving that rest to the end of the
+// loop moves every chord half a beat earlier, keeping the order and length.
+function n64Tunes() {
+  const built = tunes.build();
+  const ch = built.tunes[0].chans[2];
+  if (ch[0] === 0x81 && ch[2] === 0x80) {
+    const rest = ch.splice(2, 2);
+    ch.splice(ch.length - 1, 0, ...rest);   // before the end marker
+  }
+  return built;
+}
+
+module.exports = { render, RATE, TICK, n64Tunes };
+if (require.main === module) {
 const NAMES = ['title', 'score', 'bad', 'good', 'yacht', 'win', 'lose'];
 const SFX = ['tick', 'select', 'roll', 'hold'];
-const built = tunes.build();
+const built = n64Tunes();
 built.tunes.forEach((tune, i) => {
   const mix = [];
   let len = 0;
@@ -116,3 +135,4 @@ SFX.forEach((name, i) => {
   for (const ch of built.sfx[i]) if (ch) render(ch, mix);
   writeWav('sfx_' + name, mix, name === 'roll' ? 0.6 : 0.5);
 });
+}
